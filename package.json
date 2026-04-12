@@ -1,0 +1,27 @@
+{
+  "name": "yennhi-automation-testing",
+  "version": "1.0.0",
+  "description": "Playwright UI automation for Sauce Demo and The Internet",
+  "scripts": {
+    "test": "playwright test",
+    "test:sauce": "playwright test --project=chromium-saucedemo",
+    "test:internet": "playwright test --project=chromium-the-internet",
+    "test:report": "playwright show-report playwright-report"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yennhi0710/yennhi-automation-testing.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yennhi0710/yennhi-automation-testing/issues"
+  },
+  "homepage": "https://github.com/Yennhi0710/yennhi-automation-testing#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.2"
+  }
+}
