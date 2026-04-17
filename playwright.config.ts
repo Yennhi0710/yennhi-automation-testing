@@ -8,7 +8,7 @@ function slowMoMs(): number | undefined {
     const n = Number(process.env.SLOW_MO);
     return Number.isFinite(n) ? n : undefined;
   }
-  return 300;
+  return 800;
 }
 
 const slowMo = slowMoMs();
@@ -28,6 +28,7 @@ export default defineConfig({
   use: {
     headless,
     ...(slowMo ? { launchOptions: { slowMo } } : {}),
+    testIdAttribute: "data-test",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "off",
@@ -39,6 +40,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         baseURL: "https://www.saucedemo.com",
         headless,
+        viewport: { width: 1600, height: 900 },
       },
       testMatch: "**/saucedemo.smoke.spec.ts",
     },
@@ -48,6 +50,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         baseURL: "https://the-internet.herokuapp.com",
         headless,
+        viewport: { width: 1600, height: 900 },
       },
       testMatch: "**/the-internet.smoke.spec.ts",
     },
