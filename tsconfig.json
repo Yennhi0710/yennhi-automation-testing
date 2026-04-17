@@ -9,5 +9,10 @@
     "skipLibCheck": true,
     "esModuleInterop": true
   },
-  "include": ["tests/**/*.ts", "playwright.config.ts"]
+  "include": [
+    "tests/**/*.ts",
+    "pages/**/*.ts",
+    "fixtures/**/*.ts",
+    "playwright.config.ts"
+  ]
 }
