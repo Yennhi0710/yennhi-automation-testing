@@ -6,6 +6,10 @@ export class InventoryPage extends BasePage {
     return this.page.locator(".header_container");
   }
 
+  inventoryItemImages(): Locator {
+    return this.page.locator(".inventory_item_img img");
+  }
+
   cartLink(): Locator {
     return this.page.getByTestId("shopping-cart-link");
   }
