@@ -2,6 +2,10 @@ import type { Locator } from "@playwright/test";
 import { BasePage } from "./BasePage";
 
 export class CheckoutStepOnePage extends BasePage {
+  errorMessage(): Locator {
+    return this.page.getByTestId("error");
+  }
+
   firstNameField(): Locator {
     return this.page.getByTestId("firstName");
   }
