@@ -1,0 +1,3 @@
+Xin chào từ dự án yennhi-automation-testing.
+Đây là tệp dùng để kiểm thử chức năng tải tệp lên (File Upload).
+
