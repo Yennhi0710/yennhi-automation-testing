@@ -8,7 +8,7 @@ function slowMoMs(): number | undefined {
     const n = Number(process.env.SLOW_MO);
     return Number.isFinite(n) ? n : undefined;
   }
-  return 800;
+  return 1500;
 }
 
 const slowMo = slowMoMs();
@@ -23,7 +23,7 @@ export default defineConfig({
     ["list"],
     ["html", { open: "never", outputFolder: "playwright-report" }],
   ],
-  timeout: 30_000,
+  timeout: 60_000,
   expect: { timeout: 10_000 },
   use: {
     headless,
