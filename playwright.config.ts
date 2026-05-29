@@ -20,7 +20,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: [
-    ["list"],
+    ["./reporters/concise-reporter.ts"],
     ["html", { open: "never", outputFolder: "playwright-report" }],
   ],
   timeout: 60_000,
