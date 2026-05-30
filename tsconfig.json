@@ -13,6 +13,7 @@
     "tests/**/*.ts",
     "pages/**/*.ts",
     "fixtures/**/*.ts",
+    "reporters/**/*.ts",
     "playwright.config.ts"
   ]
 }
