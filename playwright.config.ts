@@ -13,6 +13,8 @@ function slowMoMs(): number | undefined {
 
 const slowMo = slowMoMs();
 
+const viewport = { width: 1400, height: 700 };
+
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: false,
@@ -40,7 +42,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         baseURL: "https://www.saucedemo.com",
         headless,
-        viewport: { width: 1600, height: 900 },
+        viewport,
       },
       testMatch: "**/saucedemo.smoke.spec.ts",
     },
@@ -50,7 +52,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         baseURL: "https://the-internet.herokuapp.com",
         headless,
-        viewport: { width: 1600, height: 900 },
+        viewport,
       },
       testMatch: "**/the-internet.smoke.spec.ts",
     },

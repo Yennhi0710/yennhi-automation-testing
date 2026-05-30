@@ -4,8 +4,8 @@ import { test, expect } from "@playwright/test";
 
 const FIXTURES_DIR = path.join(__dirname, "fixtures");
 
-test.describe("The Internet — Test Manual TC 13 → TC 20", () => {
-  test("TC 13 — File Upload thành công với test_image.png và file .txt", async ({ page }) => {
+test.describe("The Internet — TC 13 → TC 20", () => {
+  test("TC 13 — Upload file thành công", async ({ page }) => {
     await page.goto("/upload");
     await expect(page.getByRole("heading", { name: "File Uploader" })).toBeVisible();
 
@@ -31,7 +31,7 @@ test.describe("The Internet — Test Manual TC 13 → TC 20", () => {
     await expect(page.locator("#uploaded-files")).toHaveText("file_upload.txt");
   });
 
-  test("TC 14 — File Upload bị chặn khi file > 5MB", async ({ page }) => {
+  test("TC 14 — Upload file > 5MB", async ({ page }) => {
     await page.goto("/upload");
     await expect(page.getByRole("heading", { name: "File Uploader" })).toBeVisible();
 
@@ -59,7 +59,7 @@ test.describe("The Internet — Test Manual TC 13 → TC 20", () => {
     await expect(page.locator("#uploaded-files")).toHaveText("file_upload.txt");
   });
 
-  test("TC 15 — File Upload .exe phải bị server từ chối", async ({ page }) => {
+  test("TC 15 — Upload file sai định dạng (.exe)", async ({ page }) => {
     await page.goto("/upload");
     await expect(page.getByRole("heading", { name: "File Uploader" })).toBeVisible();
 
@@ -79,7 +79,7 @@ test.describe("The Internet — Test Manual TC 13 → TC 20", () => {
     ).not.toHaveText("malicious_test.exe");
   });
 
-  test("TC 16 — Dynamic Loading hiển thị Hello World! ở cả 2 example", async ({ page }) => {
+  test("TC 16 — Dynamic Loading", async ({ page }) => {
     await page.goto("/dynamic_loading");
     await expect(
       page.getByRole("link", { name: "Example 1: Element on page that is hidden" }),
@@ -114,7 +114,7 @@ test.describe("The Internet — Test Manual TC 13 → TC 20", () => {
     await expect(finishTwo).toHaveText("Hello World!");
   });
 
-  test("TC 17 — Drag and Drop hoán đổi cột A và cột B", async ({ page }) => {
+  test("TC 17 — Drag and Drop", async ({ page }) => {
     await page.goto("/drag_and_drop");
     await expect(page.getByRole("heading", { name: "Drag and Drop" })).toBeVisible();
 
@@ -132,7 +132,7 @@ test.describe("The Internet — Test Manual TC 13 → TC 20", () => {
     await expect(columnB.locator("header")).toHaveText("B");
   });
 
-  test("TC 18 — JavaScript Alerts xử lý Alert/Confirm/Prompt", async ({ page }) => {
+  test("TC 18 — JavaScript Alerts", async ({ page }) => {
     await page.goto("/javascript_alerts");
     await expect(page.getByRole("heading", { name: "JavaScript Alerts" })).toBeVisible();
 
@@ -165,7 +165,7 @@ test.describe("The Internet — Test Manual TC 13 → TC 20", () => {
     await expect(page.locator("#result")).toHaveText("You entered: Hello QA");
   });
 
-  test("TC 19 — Checkboxes toggle đúng trạng thái và reset khi refresh", async ({ page }) => {
+  test("TC 19 — Checkboxes", async ({ page }) => {
     await page.goto("/checkboxes");
     await expect(page.getByRole("heading", { name: "Checkboxes" })).toBeVisible();
 
@@ -197,7 +197,7 @@ test.describe("The Internet — Test Manual TC 13 → TC 20", () => {
     await expect(page.locator("#checkboxes input").nth(1)).toBeChecked();
   });
 
-  test("TC 20 — Dropdown chọn Option 1 rồi Option 2 và reset khi refresh", async ({ page }) => {
+  test("TC 20 — Dropdown Selection", async ({ page }) => {
     await page.goto("/dropdown");
     await expect(page.getByRole("heading", { name: "Dropdown List" })).toBeVisible();
 
