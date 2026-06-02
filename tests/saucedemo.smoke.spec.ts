@@ -10,9 +10,7 @@ const users = {
   standard: { username: "standard_user", password: "secret_sauce" },
   lockedOut: { username: "locked_out_user", password: "secret_sauce" },
   invalid: { username: "standard_user", password: "wrong_password" },
-  problem: { username: "problem_user", password: "secret_sauce" },
   performance: { username: "performance_glitch_user", password: "secret_sauce" },
-  error: { username: "error_user", password: "secret_sauce" },
 };
 
 const products = {
@@ -54,149 +52,195 @@ async function goToCheckoutStepOneFromInventory(page: Page): Promise<CheckoutSte
   return new CheckoutStepOnePage(page);
 }
 
-test.describe("Sauce — Authentication", () => {
-  test("loads login page", async ({ page }) => {
+test.describe("Sauce — Test Manual TC 01 → TC 12", () => {
+  test("TC 01 — Đăng nhập thành công", async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.open();
     await expect(page).toHaveTitle(/Swag Labs/i);
-    await expect(loginPage.usernameField()).toBeVisible();
-  });
 
-  test("login succeeds with standard_user and logs out", async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.open();
     await loginPage.loginAs(users.standard.username, users.standard.password);
+    await expect(page).toHaveURL(/\/inventory\.html$/);
 
     const inventoryPage = new InventoryPage(page);
-    await expect(page).toHaveURL(/\/inventory\.html$/);
+    await expect(page.locator(".title")).toHaveText("Products");
+    await expect(page.locator(".inventory_item")).toHaveCount(6);
     await expect(inventoryPage.headerContainer()).toBeVisible();
-
-    await inventoryPage.logout();
-
-    await expect(page).toHaveURL(/\/$/);
-    await expect(loginPage.usernameField()).toBeVisible();
+    await expect(inventoryPage.cartLink()).toBeVisible();
+    await expect(inventoryPage.cartBadge()).toHaveCount(0);
   });
 
-  test("login fails with invalid password", async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.open();
-    await loginPage.loginAs(users.invalid.username, users.invalid.password);
-
-    await expect(page).toHaveURL(/\/$/);
-    await expect(loginPage.errorMessageContainer()).toBeVisible();
-  });
-
-  test("login fails for locked_out_user", async ({ page }) => {
+  test("TC 02 — Đăng nhập – tài khoản bị khóa", async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.open();
     await loginPage.loginAs(users.lockedOut.username, users.lockedOut.password);
 
     await expect(page).toHaveURL(/\/$/);
     await expect(loginPage.errorMessageContainer()).toBeVisible();
+    await expect(loginPage.errorMessageContainer()).toContainText(
+      "Epic sadface: Sorry, this user has been locked out.",
+    );
+    await expect(page.locator(".error-button")).toBeVisible();
+
+    await page.locator(".error-button").click();
+    await expect(loginPage.errorMessageContainer()).not.toContainText("Epic sadface:");
+    await expect(page.getByTestId("username")).toHaveValue(users.lockedOut.username);
+    await expect(page.getByTestId("password")).toHaveValue(users.lockedOut.password);
   });
 
-  
-});
+  test("TC 03 — Đăng nhập – sai mật khẩu", async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+    await loginPage.loginAs(users.invalid.username, users.invalid.password);
 
-test.describe("Sauce — Inventory & Cart", () => {
-  test("adds 2 products to cart successfully", async ({ page }) => {
+    await expect(page).toHaveURL(/\/$/);
+    await expect(loginPage.errorMessageContainer()).toBeVisible();
+    await expect(loginPage.errorMessageContainer()).toContainText(
+      "Epic sadface: Username and password do not match any user in this service",
+    );
+
+    await page.getByTestId("password").fill(users.standard.password);
+    await page.getByTestId("login-button").click();
+    await expect(page).toHaveURL(/\/inventory\.html$/);
+  });
+
+  test("TC 04 — Đăng nhập để trống Username/Password", async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+
+    await page.getByTestId("login-button").click();
+    await expect(loginPage.errorMessageContainer()).toBeVisible();
+    await expect(loginPage.errorMessageContainer()).toContainText("Username is required");
+
+    await page.getByTestId("username").fill(users.standard.username);
+    await page.getByTestId("login-button").click();
+    await expect(loginPage.errorMessageContainer()).toContainText("Password is required");
+  });
+
+  test("TC 05 — Đăng nhập – Performance Glitch User", async ({ page }) => {
+    test.setTimeout(90_000);
+    const loginPage = new LoginPage(page);
+    await loginPage.open();
+
+    const startedAt = Date.now();
+    await loginPage.loginAs(users.performance.username, users.performance.password);
+    await expect(page).toHaveURL(/\/inventory\.html$/, { timeout: 60_000 });
+    const elapsedMs = Date.now() - startedAt;
+    expect(elapsedMs).toBeGreaterThanOrEqual(3000);
+  });
+
+  test("TC 06 — Đăng xuất", async ({ page }) => {
+    await loginStandard(page);
+
+    const inventoryPage = new InventoryPage(page);
+    await expect(page).toHaveURL(/\/inventory\.html$/);
+
+    await inventoryPage.logout();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(new LoginPage(page).usernameField()).toBeVisible();
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test("TC 07 — Thêm sản phẩm vào giỏ hàng", async ({ page }) => {
     await loginStandard(page);
 
     const inventoryPage = new InventoryPage(page);
     await expect(page).toHaveURL(/\/inventory\.html$/);
 
     await addDefaultProducts(inventoryPage);
-
     await expect(inventoryPage.cartBadge()).toHaveText("2");
 
     await inventoryPage.openCart();
     await expect(page).toHaveURL(/\/cart\.html$/);
 
     const cartPage = new CartPage(page);
-    await expect(cartPage.checkoutButton()).toBeVisible();
     await expect(cartPage.cartItemNames()).toContainText([
       products.backpack.name,
       products.bikeLight.name,
     ]);
   });
 
-  test("checks out successfully", async ({ page }) => {
+  test("TC 08 — Xóa sản phẩm khỏi giỏ hàng", async ({ page }) => {
     await loginStandard(page);
-    const checkoutStepOnePage = await goToCheckoutStepOneFromInventory(page);
-    await checkoutStepOnePage.fillCustomerInfo("Yen", "Nhi", "700000");
-    await checkoutStepOnePage.continue();
-
-    await expect(page).toHaveURL(/\/checkout-step-two\.html$/);
-    const checkoutStepTwoPage = new CheckoutStepTwoPage(page);
-    await checkoutStepTwoPage.finish();
-
-    await expect(page).toHaveURL(/\/checkout-complete\.html$/);
-    const checkoutCompletePage = new CheckoutCompletePage(page);
-    await expect(checkoutCompletePage.completeHeader()).toHaveText(
-      "Thank you for your order!",
-    );
-  });
-});
-
-test.describe("Sauce — Special Users", () => {
-  test("problem_user shows duplicated product images", async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.open();
-    await loginPage.loginAs(users.problem.username, users.problem.password);
 
     const inventoryPage = new InventoryPage(page);
     await expect(page).toHaveURL(/\/inventory\.html$/);
 
-    const images = inventoryPage.inventoryItemImages();
-    await expect(images.first()).toBeVisible();
+    await addDefaultProducts(inventoryPage);
+    await expect(inventoryPage.cartBadge()).toHaveText("2");
 
-    const src0 = await images.nth(0).getAttribute("src");
-    const src1 = await images.nth(1).getAttribute("src");
+    await inventoryPage.openCart();
+    await expect(page).toHaveURL(/\/cart\.html$/);
 
-    expect(src0).toBeTruthy();
-    expect(src1).toBeTruthy();
-    expect(src0).toBe(src1);
+    await page.getByTestId(`remove-${products.backpack.slug}`).click();
+    await expect(page.getByTestId("shopping-cart-badge")).toHaveText("1");
+
+    await page.getByTestId("continue-shopping").click();
+    await expect(page).toHaveURL(/\/inventory\.html$/);
+    await expect(page.getByTestId(`add-to-cart-${products.backpack.slug}`)).toBeVisible();
+    await expect(page.getByTestId(`remove-${products.bikeLight.slug}`)).toBeVisible();
   });
 
-  test("problem_user cannot input last name on checkout step one", async ({ page }) => {
-    await loginUser(page, users.problem.username, users.problem.password);
+  test("TC 09 — Hoàn tất checkout", async ({ page }) => {
+    await loginStandard(page);
+
     const checkoutStepOnePage = await goToCheckoutStepOneFromInventory(page);
-    await checkoutStepOnePage.firstNameField().fill("Yen");
-    await checkoutStepOnePage.lastNameField().fill("Nhi");
-    await checkoutStepOnePage.postalCodeField().fill("700000");
-
-    await checkoutStepOnePage.continue();
-    await expect(page).toHaveURL(/\/checkout-step-one\.html$/);
-    await expect(checkoutStepOnePage.errorMessage()).toContainText(
-      "Last Name is required",
-    );
-  });
-
-  test("performance_glitch_user eventually loads inventory page", async ({ page }) => {
-    test.setTimeout(90_000);
-
-    const loginPage = new LoginPage(page);
-    await loginPage.open();
-
-    const startedAt = Date.now();
-    await loginPage.loginAs(users.performance.username, users.performance.password);
-
-    await expect(page).toHaveURL(/\/inventory\.html$/, { timeout: 60_000 });
-
-    const inventoryPage = new InventoryPage(page);
-    await expect(inventoryPage.headerContainer()).toBeVisible({ timeout: 60_000 });
-
-    expect(Date.now() - startedAt).toBeGreaterThanOrEqual(0);
-  });
-
-  test("error_user can continue checkout step one without last name", async ({ page }) => {
-    await loginUser(page, users.error.username, users.error.password);
-    const checkoutStepOnePage = await goToCheckoutStepOneFromInventory(page);
-    await checkoutStepOnePage.firstNameField().fill("Yen");
-    await checkoutStepOnePage.postalCodeField().fill("700000");
+    await checkoutStepOnePage.fillCustomerInfo("John", "Doe", "10001");
     await checkoutStepOnePage.continue();
 
     await expect(page).toHaveURL(/\/checkout-step-two\.html$/);
-    await expect(checkoutStepOnePage.errorMessage()).toBeHidden();
+    await new CheckoutStepTwoPage(page).finish();
+
+    await expect(page).toHaveURL(/\/checkout-complete\.html$/);
+    await expect(new CheckoutCompletePage(page).completeHeader()).toHaveText(
+      "Thank you for your order!",
+    );
+  });
+
+  test("TC 10 — Checkout thiếu thông tin", async ({ page }) => {
+    await loginStandard(page);
+
+    const checkoutStepOnePage = await goToCheckoutStepOneFromInventory(page);
+    await checkoutStepOnePage.continue();
+    await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
+
+    await checkoutStepOnePage.firstNameField().fill("Jane");
+    await checkoutStepOnePage.continue();
+    await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
+
+    await checkoutStepOnePage.lastNameField().fill("Smith");
+    await checkoutStepOnePage.continue();
+    await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
+
+    await checkoutStepOnePage.postalCodeField().fill("90210");
+    await checkoutStepOnePage.continue();
+    await expect(page).toHaveURL(/\/checkout-step-two\.html$/);
+  });
+
+  test("TC 11 — Checkout khi giỏ hàng trống", async ({ page }) => {
+    await loginStandard(page);
+    await expect(page.getByTestId("shopping-cart-badge")).toHaveCount(0);
+
+    await new InventoryPage(page).openCart();
+    await expect(page).toHaveURL(/\/cart\.html$/);
+
+    await new CartPage(page).checkout();
+
+    await expect(page).toHaveURL(/\/cart\.html$/, { timeout: 2000 });
+  });
+
+  test("TC 12 — Sắp xếp sản phẩm theo giá", async ({ page }) => {
+    await loginStandard(page);
+    await expect(page).toHaveURL(/\/inventory\.html$/);
+
+    const sort = page.getByTestId("product-sort-container");
+    await expect(sort).toBeVisible();
+
+    await sort.selectOption("lohi");
+    const pricesText = await page.locator(".inventory_item_price").allTextContents();
+    const prices = pricesText.map((t) => Number(t.replace("$", "")));
+    const sorted = [...prices].sort((a, b) => a - b);
+    expect(prices).toEqual(sorted);
   });
 });
