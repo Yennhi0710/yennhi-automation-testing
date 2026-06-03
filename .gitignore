@@ -7,6 +7,10 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 
+# Allure
+/allure-results/
+/allure-report/
+
 # Env (secrets) — keep .env.example in repo if you add one later
 .env
 .env.*
