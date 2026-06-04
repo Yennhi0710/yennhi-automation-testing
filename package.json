@@ -6,7 +6,8 @@
     "test": "playwright test",
     "test:sauce": "playwright test --project=chromium-saucedemo",
     "test:internet": "playwright test --project=chromium-the-internet",
-    "test:report": "playwright show-report playwright-report"
+    "test:report": "playwright show-report playwright-report",
+    "report:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,8 @@
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.6.0",
+    "allure-commandline": "^2.42.0",
+    "allure-playwright": "^3.9.0",
     "typescript": "^6.0.2"
   }
 }
