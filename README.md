@@ -38,12 +38,12 @@ npm test
 ```
 
 
-| Lệnh                             | Ý nghĩa                                           |
-| -------------------------------- | ------------------------------------------------- |
-| `npm test`                       | Chạy toàn bộ test                                 |
-| `npm run test:sauce`             | Chỉ project Sauce Demo                            |
-| `npm run test:internet`          | Chỉ project The Internet                          |
-| `npm run test:report`            | Mở báo cáo HTML Playwright (`playwright-report/`) |
+| Lệnh                    | Ý nghĩa                                                |
+| ----------------------- | ------------------------------------------------------ |
+| `npm test`              | Chạy toàn bộ test                                      |
+| `npm run test:sauce`    | Chỉ project Sauce Demo                                 |
+| `npm run test:internet` | Chỉ project The Internet                               |
+| `npm run test:report`   | Mở báo cáo HTML Playwright (`playwright-report/`)      |
 | `npm run report:allure` | Sinh + mở báo cáo Allure trên browser (sau `npm test`) |
 
 
@@ -51,13 +51,6 @@ npm test
 
 ```bash
 npm test
-npm run report:allure
-```
-
-Nếu lỗi `JAVA_HOME is set to an invalid directory`, sửa biến môi trường Windows (PowerShell tạm thời):
-
-```powershell
-$env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
 npm run report:allure
 ```
 
