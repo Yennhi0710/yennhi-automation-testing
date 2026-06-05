@@ -56,6 +56,32 @@ npm run report:allure
 
 ---
 
+## CI/CD & GitHub Pages 
+
+Pipeline: `.github/workflows/playwright.yml`
+
+
+| Bước                          | Mô tả                                 |
+| ----------------------------- | ------------------------------------- |
+| Push / PR → `main`, `develop` | Tự chạy `npm test` trên Ubuntu        |
+| Sau mỗi lần chạy              | Sinh Allure report, lưu artifact      |
+| Push → `main`                 | Tự deploy Allure lên **GitHub Pages** |
+
+
+**Bật GitHub Pages (lần đầu):**
+
+1. Vào repo trên GitHub → **Settings** → **Pages**
+2. **Build and deployment** → Source: **GitHub Actions**
+3. Push lên nhánh `main` → tab **Actions** → job **Deploy Allure report to GitHub Pages**
+
+**URL báo cáo (sau khi deploy thành công):**
+
+`https://yennhi0710.github.io/yennhi-automation-testing/`
+
+TC 11, TC 14, TC 15 dùng `test.fail()` — ghi nhận bug, pipeline vẫn xanh.
+
+---
+
 ## Link Swagger UI
 
 Chưa có Swagger UI.
