@@ -1,4 +1,11 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import { products, users } from "../fixtures/test-data";
+import { logStep } from "../helpers/test-logger";
+import {
+  goToCheckoutStepOneFromInventory,
+  loginStandard,
+  loginUser,
+} from "../helpers/saucedemo-flows";
 import { CartPage } from "../pages/CartPage";
 import { CheckoutCompletePage } from "../pages/CheckoutCompletePage";
 import { CheckoutStepOnePage } from "../pages/CheckoutStepOnePage";
@@ -6,241 +13,515 @@ import { CheckoutStepTwoPage } from "../pages/CheckoutStepTwoPage";
 import { InventoryPage } from "../pages/InventoryPage";
 import { LoginPage } from "../pages/LoginPage";
 
-const users = {
-  standard: { username: "standard_user", password: "secret_sauce" },
-  lockedOut: { username: "locked_out_user", password: "secret_sauce" },
-  invalid: { username: "standard_user", password: "wrong_password" },
-  performance: { username: "performance_glitch_user", password: "secret_sauce" },
-};
-
-const products = {
-  backpack: { name: "Sauce Labs Backpack", slug: "sauce-labs-backpack" },
-  bikeLight: { name: "Sauce Labs Bike Light", slug: "sauce-labs-bike-light" },
-};
-
-async function loginUser(page: Page, username: string, password: string): Promise<void> {
-  const loginPage = new LoginPage(page);
-  await loginPage.open();
-  await loginPage.loginAs(username, password);
-}
-
-async function loginStandard(page: Page): Promise<void> {
-  await loginUser(page, users.standard.username, users.standard.password);
-}
-
-async function addDefaultProducts(inventoryPage: InventoryPage): Promise<void> {
-  await inventoryPage.addItemToCartBySlug(products.backpack.slug);
-  await inventoryPage.expectItemAdded(products.backpack.slug);
-
-  await inventoryPage.addItemToCartBySlug(products.bikeLight.slug);
-  await inventoryPage.expectItemAdded(products.bikeLight.slug);
-}
-
-async function goToCheckoutStepOneFromInventory(page: Page): Promise<CheckoutStepOnePage> {
-  const inventoryPage = new InventoryPage(page);
-  await expect(page).toHaveURL(/\/inventory\.html$/);
-
-  await addDefaultProducts(inventoryPage);
-
-  await inventoryPage.openCart();
-  await expect(page).toHaveURL(/\/cart\.html$/);
-
-  const cartPage = new CartPage(page);
-  await cartPage.checkout();
-  await expect(page).toHaveURL(/\/checkout-step-one\.html$/);
-
-  return new CheckoutStepOnePage(page);
-}
-
 test.describe("Sauce — Test Manual TC 01 → TC 12", () => {
   test("TC 01 — Đăng nhập thành công", async ({ page }) => {
     const loginPage = new LoginPage(page);
-    await loginPage.open();
-    await expect(page).toHaveTitle(/Swag Labs/i);
-
-    await loginPage.loginAs(users.standard.username, users.standard.password);
-    await expect(page).toHaveURL(/\/inventory\.html$/);
-
     const inventoryPage = new InventoryPage(page);
-    await expect(page.locator(".title")).toHaveText("Products");
-    await expect(page.locator(".inventory_item")).toHaveCount(6);
-    await expect(inventoryPage.headerContainer()).toBeVisible();
-    await expect(inventoryPage.cartLink()).toBeVisible();
-    await expect(inventoryPage.cartBadge()).toHaveCount(0);
+
+    await test.step("1) Truy cập https://www.saucedemo.com/", async () => {
+      logStep("TC 01", 1, "Truy cập trang đăng nhập");
+      await loginPage.open();
+    });
+
+    await test.step('2) Kiểm tra tiêu đề trang là "Swag Labs"', async () => {
+      logStep("TC 01", 2, "Kiểm tra title Swag Labs");
+      await expect(page).toHaveTitle(/Swag Labs/i);
+    });
+
+    await test.step("3) Nhập Username: standard_user", async () => {
+      logStep("TC 01", 3, "Nhập username");
+      await loginPage.fillUsername(users.standard.username);
+    });
+
+    await test.step("4) Nhập Password: secret_sauce", async () => {
+      logStep("TC 01", 4, "Nhập password");
+      await loginPage.fillPassword(users.standard.password);
+    });
+
+    await test.step('5) Click nút "Login"', async () => {
+      logStep("TC 01", 5, "Click Login");
+      await loginPage.clickLogin();
+    });
+
+    await test.step("6) Kiểm tra URL hiện tại", async () => {
+      logStep("TC 01", 6, "Kiểm tra URL /inventory.html");
+      await expect(page).toHaveURL(/\/inventory\.html$/);
+    });
+
+    await test.step("7) Kiểm tra trang danh sách sản phẩm", async () => {
+      logStep("TC 01", 7, "Kiểm tra Products và 6 items");
+      await expect(inventoryPage.productsTitle()).toHaveText("Products");
+      await expect(inventoryPage.inventoryItems()).toHaveCount(6);
+    });
+
+    await test.step("8) Kiểm tra biểu tượng giỏ hàng trên header", async () => {
+      logStep("TC 01", 8, "Kiểm tra giỏ hàng, badge trống");
+      await expect(inventoryPage.headerContainer()).toBeVisible();
+      await expect(inventoryPage.cartLink()).toBeVisible();
+      await expect(inventoryPage.cartBadge()).toHaveCount(0);
+    });
   });
 
   test("TC 02 — Đăng nhập – tài khoản bị khóa", async ({ page }) => {
     const loginPage = new LoginPage(page);
-    await loginPage.open();
-    await loginPage.loginAs(users.lockedOut.username, users.lockedOut.password);
 
-    await expect(page).toHaveURL(/\/$/);
-    await expect(loginPage.errorMessageContainer()).toBeVisible();
-    await expect(loginPage.errorMessageContainer()).toContainText(
-      "Epic sadface: Sorry, this user has been locked out.",
-    );
-    await expect(page.locator(".error-button")).toBeVisible();
+    await test.step("1) Truy cập https://www.saucedemo.com/", async () => {
+      logStep("TC 02", 1, "Truy cập trang đăng nhập");
+      await loginPage.open();
+    });
 
-    await page.locator(".error-button").click();
-    await expect(loginPage.errorMessageContainer()).not.toContainText("Epic sadface:");
-    await expect(page.getByTestId("username")).toHaveValue(users.lockedOut.username);
-    await expect(page.getByTestId("password")).toHaveValue(users.lockedOut.password);
+    await test.step("2) Nhập Username: locked_out_user", async () => {
+      logStep("TC 02", 2, "Nhập username locked_out_user");
+      await loginPage.fillUsername(users.lockedOut.username);
+    });
+
+    await test.step("3) Nhập Password: secret_sauce", async () => {
+      logStep("TC 02", 3, "Nhập password");
+      await loginPage.fillPassword(users.lockedOut.password);
+    });
+
+    await test.step('4) Click nút "Login"', async () => {
+      logStep("TC 02", 4, "Click Login");
+      await loginPage.clickLogin();
+    });
+
+    await test.step("5) Kiểm tra thông báo lỗi", async () => {
+      logStep("TC 02", 5, "Kiểm tra thông báo locked out");
+      await expect(loginPage.errorMessageContainer()).toBeVisible();
+      await expect(loginPage.errorMessageContainer()).toContainText(
+        "Epic sadface: Sorry, this user has been locked out.",
+      );
+    });
+
+    await test.step("6) Kiểm tra URL không thay đổi", async () => {
+      logStep("TC 02", 6, "URL vẫn trang login");
+      await expect(page).toHaveURL(/\/$/);
+    });
+
+    await test.step("7) Kiểm tra icon lỗi bên cạnh các trường", async () => {
+      logStep("TC 02", 7, "Icon X hiển thị");
+      await expect(loginPage.errorButton()).toBeVisible();
+    });
+
+    await test.step("8) Click icon X để xóa thông báo", async () => {
+      logStep("TC 02", 8, "Dismiss thông báo lỗi");
+      await loginPage.dismissError();
+    });
+
+    await test.step("9) Kiểm tra dữ liệu input sau khi xóa lỗi", async () => {
+      logStep("TC 02", 9, "Input vẫn giữ giá trị");
+      await expect(loginPage.errorMessageContainer()).not.toContainText("Epic sadface:");
+      await expect(loginPage.usernameField()).toHaveValue(users.lockedOut.username);
+      await expect(loginPage.passwordField()).toHaveValue(users.lockedOut.password);
+    });
   });
 
   test("TC 03 — Đăng nhập – sai mật khẩu", async ({ page }) => {
     const loginPage = new LoginPage(page);
-    await loginPage.open();
-    await loginPage.loginAs(users.invalid.username, users.invalid.password);
 
-    await expect(page).toHaveURL(/\/$/);
-    await expect(loginPage.errorMessageContainer()).toBeVisible();
-    await expect(loginPage.errorMessageContainer()).toContainText(
-      "Epic sadface: Username and password do not match any user in this service",
-    );
+    await test.step("1) Truy cập https://www.saucedemo.com/", async () => {
+      logStep("TC 03", 1, "Truy cập trang đăng nhập");
+      await loginPage.open();
+    });
 
-    await page.getByTestId("password").fill(users.standard.password);
-    await page.getByTestId("login-button").click();
-    await expect(page).toHaveURL(/\/inventory\.html$/);
+    await test.step("2) Nhập Username: standard_user", async () => {
+      logStep("TC 03", 2, "Nhập username sai");
+      await loginPage.fillUsername(users.invalid.username);
+    });
+
+    await test.step("3) Nhập Password: wrong_password", async () => {
+      logStep("TC 03", 3, "Nhập password sai");
+      await loginPage.fillPassword(users.invalid.password);
+    });
+
+    await test.step('4) Click nút "Login"', async () => {
+      logStep("TC 03", 4, "Click Login");
+      await loginPage.clickLogin();
+    });
+
+    await test.step("5) Kiểm tra thông báo lỗi", async () => {
+      logStep("TC 03", 5, "Thông báo không khớp user");
+      await expect(page).toHaveURL(/\/$/);
+      await expect(loginPage.errorMessageContainer()).toContainText(
+        "Epic sadface: Username and password do not match any user in this service",
+      );
+    });
+
+    await test.step("6) Kiểm tra URL không thay đổi", async () => {
+      logStep("TC 03", 6, "Vẫn ở trang login");
+      await expect(page).toHaveURL(/\/$/);
+    });
+
+    await test.step("7) Xóa Password và nhập lại secret_sauce", async () => {
+      logStep("TC 03", 7, "Sửa password đúng");
+      await loginPage.fillPassword(users.standard.password);
+    });
+
+    await test.step('8) Click nút "Login"', async () => {
+      logStep("TC 03", 8, "Đăng nhập lại thành công");
+      await loginPage.clickLogin();
+      await expect(page).toHaveURL(/\/inventory\.html$/);
+    });
   });
 
-  test("TC 04 — Đăng nhập để trống Username/Password", async ({ page }) => {
+  test("TC 04a — Đăng nhập để trống Username", async ({ page }) => {
     const loginPage = new LoginPage(page);
-    await loginPage.open();
 
-    await page.getByTestId("login-button").click();
-    await expect(loginPage.errorMessageContainer()).toBeVisible();
-    await expect(loginPage.errorMessageContainer()).toContainText("Username is required");
+    await test.step("1) Truy cập https://www.saucedemo.com/", async () => {
+      logStep("TC 04a", 1, "Truy cập trang đăng nhập");
+      await loginPage.open();
+    });
 
-    await page.getByTestId("username").fill(users.standard.username);
-    await page.getByTestId("login-button").click();
-    await expect(loginPage.errorMessageContainer()).toContainText("Password is required");
+    await test.step('2) Click nút "Login" khi để trống Username', async () => {
+      logStep("TC 04a", 2, "Click Login không nhập gì");
+      await loginPage.clickLogin();
+    });
+
+    await test.step("3) Kiểm tra thông báo Username is required", async () => {
+      logStep("TC 04a", 3, "Báo lỗi Username is required");
+      await expect(loginPage.errorMessageContainer()).toBeVisible();
+      await expect(loginPage.errorMessageContainer()).toContainText("Username is required");
+    });
+  });
+
+  test("TC 04b — Đăng nhập để trống Password", async ({ page }) => {
+    const loginPage = new LoginPage(page);
+
+    await test.step("1) Truy cập https://www.saucedemo.com/", async () => {
+      logStep("TC 04b", 1, "Truy cập trang đăng nhập");
+      await loginPage.open();
+    });
+
+    await test.step("2) Nhập Username: standard_user", async () => {
+      logStep("TC 04b", 2, "Nhập username");
+      await loginPage.fillUsername(users.standard.username);
+    });
+
+    await test.step('3) Click nút "Login" khi để trống Password', async () => {
+      logStep("TC 04b", 3, "Click Login thiếu password");
+      await loginPage.clickLogin();
+    });
+
+    await test.step("4) Kiểm tra thông báo Password is required", async () => {
+      logStep("TC 04b", 4, "Báo lỗi Password is required");
+      await expect(loginPage.errorMessageContainer()).toContainText("Password is required");
+    });
   });
 
   test("TC 05 — Đăng nhập – Performance Glitch User", async ({ page }) => {
     test.setTimeout(90_000);
     const loginPage = new LoginPage(page);
-    await loginPage.open();
 
-    const startedAt = Date.now();
-    await loginPage.loginAs(users.performance.username, users.performance.password);
-    await expect(page).toHaveURL(/\/inventory\.html$/, { timeout: 60_000 });
-    const elapsedMs = Date.now() - startedAt;
-    expect(elapsedMs).toBeGreaterThanOrEqual(3000);
+    await test.step("1) Truy cập https://www.saucedemo.com/", async () => {
+      logStep("TC 05", 1, "Truy cập trang đăng nhập");
+      await loginPage.open();
+    });
+
+    await test.step("2) Nhập credentials performance_glitch_user", async () => {
+      logStep("TC 05", 2, "Nhập user performance");
+      await loginPage.fillUsername(users.performance.username);
+      await loginPage.fillPassword(users.performance.password);
+    });
+
+    await test.step('3) Click nút "Login" và đo thời gian', async () => {
+      logStep("TC 05", 3, "Login chậm >= 3 giây");
+      const startedAt = Date.now();
+      await loginPage.clickLogin();
+      await expect(page).toHaveURL(/\/inventory\.html$/, { timeout: 60_000 });
+      expect(Date.now() - startedAt).toBeGreaterThanOrEqual(3000);
+    });
+
+    await test.step("4) Kiểm tra vào trang Products", async () => {
+      logStep("TC 05", 4, "Vào inventory thành công");
+      await expect(page).toHaveURL(/\/inventory\.html$/);
+    });
   });
 
-  test("TC 06 — Đăng xuất", async ({ page }) => {
-    await loginStandard(page);
-
+  test("TC 06a — Đăng xuất", async ({ page }) => {
+    const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
-    await expect(page).toHaveURL(/\/inventory\.html$/);
 
-    await inventoryPage.logout();
-    await expect(page).toHaveURL(/\/$/);
-    await expect(new LoginPage(page).usernameField()).toBeVisible();
+    await test.step("1) Đăng nhập standard_user", async () => {
+      logStep("TC 06a", 1, "Đăng nhập");
+      await loginUser(page, users.standard.username, users.standard.password);
+    });
 
-    await page.goBack();
-    await expect(page).toHaveURL(/\/$/);
+    await test.step("2) Kiểm tra đang ở /inventory.html", async () => {
+      logStep("TC 06a", 2, "Xác nhận trang Products");
+      await expect(page).toHaveURL(/\/inventory\.html$/);
+    });
+
+    await test.step('3) Mở menu và click "Logout"', async () => {
+      logStep("TC 06a", 3, "Đăng xuất");
+      await inventoryPage.logout();
+    });
+
+    await test.step("4) Kiểm tra quay về trang login", async () => {
+      logStep("TC 06a", 4, "URL về / và form login hiển thị");
+      await expect(page).toHaveURL(/\/$/);
+      await expect(loginPage.usernameField()).toBeVisible();
+    });
+  });
+
+  test("TC 06b — Back sau khi đăng xuất", async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    const inventoryPage = new InventoryPage(page);
+
+    await test.step("1) Đăng nhập và đăng xuất", async () => {
+      logStep("TC 06b", 1, "Login rồi logout");
+      await loginUser(page, users.standard.username, users.standard.password);
+      await inventoryPage.logout();
+      await expect(page).toHaveURL(/\/$/);
+    });
+
+    await test.step("2) Nhấn Back trên trình duyệt", async () => {
+      logStep("TC 06b", 2, "Nhấn Back");
+      await page.goBack();
+    });
+
+    await test.step("3) Kiểm tra vẫn ở trang login", async () => {
+      logStep("TC 06b", 3, "Không quay lại inventory");
+      await expect(page).toHaveURL(/\/$/);
+      await expect(loginPage.usernameField()).toBeVisible();
+    });
   });
 
   test("TC 07 — Thêm sản phẩm vào giỏ hàng", async ({ page }) => {
-    await loginStandard(page);
-
     const inventoryPage = new InventoryPage(page);
-    await expect(page).toHaveURL(/\/inventory\.html$/);
-
-    await addDefaultProducts(inventoryPage);
-    await expect(inventoryPage.cartBadge()).toHaveText("2");
-
-    await inventoryPage.openCart();
-    await expect(page).toHaveURL(/\/cart\.html$/);
-
     const cartPage = new CartPage(page);
-    await expect(cartPage.cartItemNames()).toContainText([
-      products.backpack.name,
-      products.bikeLight.name,
-    ]);
+
+    await test.step("1) Đăng nhập standard_user", async () => {
+      logStep("TC 07", 1, "Đăng nhập");
+      await loginStandard(page);
+    });
+
+    await test.step("2) Add Sauce Labs Backpack", async () => {
+      logStep("TC 07", 2, "Thêm Backpack");
+      await inventoryPage.addItemToCartBySlug(products.backpack.slug);
+      await inventoryPage.expectItemAdded(products.backpack.slug);
+    });
+
+    await test.step("3) Add Sauce Labs Bike Light", async () => {
+      logStep("TC 07", 3, "Thêm Bike Light");
+      await inventoryPage.addItemToCartBySlug(products.bikeLight.slug);
+      await inventoryPage.expectItemAdded(products.bikeLight.slug);
+    });
+
+    await test.step("4) Kiểm tra badge giỏ hàng = 2", async () => {
+      logStep("TC 07", 4, "Badge hiển thị 2");
+      await expect(inventoryPage.cartBadge()).toHaveText("2");
+    });
+
+    await test.step("5) Click icon giỏ hàng", async () => {
+      logStep("TC 07", 5, "Mở giỏ hàng");
+      await inventoryPage.openCart();
+      await expect(page).toHaveURL(/\/cart\.html$/);
+    });
+
+    await test.step("6) Kiểm tra danh sách sản phẩm trong giỏ", async () => {
+      logStep("TC 07", 6, "2 sản phẩm trong giỏ");
+      await expect(cartPage.cartItemNames()).toContainText([
+        products.backpack.name,
+        products.bikeLight.name,
+      ]);
+    });
+
+    await test.step("7) Kiểm tra nút Checkout", async () => {
+      logStep("TC 07", 7, "Nút Checkout hiển thị");
+      await expect(cartPage.checkoutButton()).toBeVisible();
+    });
   });
 
   test("TC 08 — Xóa sản phẩm khỏi giỏ hàng", async ({ page }) => {
-    await loginStandard(page);
-
     const inventoryPage = new InventoryPage(page);
-    await expect(page).toHaveURL(/\/inventory\.html$/);
+    const cartPage = new CartPage(page);
 
-    await addDefaultProducts(inventoryPage);
-    await expect(inventoryPage.cartBadge()).toHaveText("2");
+    await test.step("1) Đăng nhập và thêm 2 sản phẩm", async () => {
+      logStep("TC 08", 1, "Login + add 2 SP");
+      await loginStandard(page);
+      await inventoryPage.addItemToCartBySlug(products.backpack.slug);
+      await inventoryPage.addItemToCartBySlug(products.bikeLight.slug);
+      await expect(inventoryPage.cartBadge()).toHaveText("2");
+    });
 
-    await inventoryPage.openCart();
-    await expect(page).toHaveURL(/\/cart\.html$/);
+    await test.step("2) Mở giỏ hàng", async () => {
+      logStep("TC 08", 2, "Vào /cart.html");
+      await inventoryPage.openCart();
+      await expect(page).toHaveURL(/\/cart\.html$/);
+    });
 
-    await page.getByTestId(`remove-${products.backpack.slug}`).click();
-    await expect(page.getByTestId("shopping-cart-badge")).toHaveText("1");
+    await test.step("3) Xóa Sauce Labs Backpack", async () => {
+      logStep("TC 08", 3, "Remove Backpack");
+      await cartPage.removeItem(products.backpack.slug);
+      await expect(cartPage.cartBadge()).toHaveText("1");
+    });
 
-    await page.getByTestId("continue-shopping").click();
-    await expect(page).toHaveURL(/\/inventory\.html$/);
-    await expect(page.getByTestId(`add-to-cart-${products.backpack.slug}`)).toBeVisible();
-    await expect(page.getByTestId(`remove-${products.bikeLight.slug}`)).toBeVisible();
+    await test.step("4) Click Continue Shopping", async () => {
+      logStep("TC 08", 4, "Quay lại inventory");
+      await cartPage.continueShopping();
+      await expect(page).toHaveURL(/\/inventory\.html$/);
+    });
+
+    await test.step("5) Kiểm tra nút Add/Remove đúng trạng thái", async () => {
+      logStep("TC 08", 5, "Backpack Add, Bike Light Remove");
+      await expect(inventoryPage.addToCartBtn(products.backpack.slug)).toBeVisible();
+      await expect(inventoryPage.removeFromCartButton(products.bikeLight.slug)).toBeVisible();
+    });
   });
 
   test("TC 09 — Hoàn tất checkout", async ({ page }) => {
-    await loginStandard(page);
+    const checkoutStepOnePage = new CheckoutStepOnePage(page);
 
-    const checkoutStepOnePage = await goToCheckoutStepOneFromInventory(page);
-    await checkoutStepOnePage.fillCustomerInfo("John", "Doe", "10001");
-    await checkoutStepOnePage.continue();
+    await test.step("1) Đăng nhập standard_user", async () => {
+      logStep("TC 09", 1, "Đăng nhập");
+      await loginStandard(page);
+    });
 
-    await expect(page).toHaveURL(/\/checkout-step-two\.html$/);
-    await new CheckoutStepTwoPage(page).finish();
+    await test.step("2) Thêm sản phẩm và vào checkout step one", async () => {
+      logStep("TC 09", 2, "Add 2 SP + checkout");
+      await goToCheckoutStepOneFromInventory(page);
+    });
 
-    await expect(page).toHaveURL(/\/checkout-complete\.html$/);
-    await expect(new CheckoutCompletePage(page).completeHeader()).toHaveText(
-      "Thank you for your order!",
-    );
+    await test.step("3) Nhập thông tin giao hàng", async () => {
+      logStep("TC 09", 3, "Điền First/Last/Zip");
+      await checkoutStepOnePage.fillCustomerInfo("John", "Doe", "10001");
+    });
+
+    await test.step('4) Click "Continue"', async () => {
+      logStep("TC 09", 4, "Sang checkout step two");
+      await checkoutStepOnePage.continue();
+      await expect(page).toHaveURL(/\/checkout-step-two\.html$/);
+    });
+
+    await test.step('5) Click "Finish"', async () => {
+      logStep("TC 09", 5, "Hoàn tất đơn hàng");
+      await new CheckoutStepTwoPage(page).finish();
+      await expect(page).toHaveURL(/\/checkout-complete\.html$/);
+    });
+
+    await test.step("6) Kiểm tra thông báo Thank you", async () => {
+      logStep("TC 09", 6, "Thank you for your order!");
+      await expect(new CheckoutCompletePage(page).completeHeader()).toHaveText(
+        "Thank you for your order!",
+      );
+    });
   });
 
-  test("TC 10 — Checkout thiếu thông tin", async ({ page }) => {
-    await loginStandard(page);
+  test("TC 10a — Checkout thiếu tất cả thông tin", async ({ page }) => {
+    const checkoutStepOnePage = new CheckoutStepOnePage(page);
 
-    const checkoutStepOnePage = await goToCheckoutStepOneFromInventory(page);
-    await checkoutStepOnePage.continue();
-    await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
+    await test.step("1) Vào checkout step one", async () => {
+      logStep("TC 10a", 1, "Login + checkout");
+      await loginStandard(page);
+      await goToCheckoutStepOneFromInventory(page);
+    });
 
-    await checkoutStepOnePage.firstNameField().fill("Jane");
-    await checkoutStepOnePage.continue();
-    await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
+    await test.step('2) Click "Continue" không nhập gì', async () => {
+      logStep("TC 10a", 2, "Continue trống form");
+      await checkoutStepOnePage.continue();
+      await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
+    });
+  });
 
-    await checkoutStepOnePage.lastNameField().fill("Smith");
-    await checkoutStepOnePage.continue();
-    await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
+  test("TC 10b — Checkout thiếu Last Name", async ({ page }) => {
+    const checkoutStepOnePage = new CheckoutStepOnePage(page);
 
-    await checkoutStepOnePage.postalCodeField().fill("90210");
-    await checkoutStepOnePage.continue();
-    await expect(page).toHaveURL(/\/checkout-step-two\.html$/);
+    await test.step("1) Vào checkout step one", async () => {
+      logStep("TC 10b", 1, "Login + checkout");
+      await loginStandard(page);
+      await goToCheckoutStepOneFromInventory(page);
+    });
+
+    await test.step("2) Chỉ nhập First Name", async () => {
+      logStep("TC 10b", 2, "Nhập First Name, thiếu Last/Zip");
+      await checkoutStepOnePage.firstNameField().fill("Jane");
+      await checkoutStepOnePage.continue();
+      await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
+    });
+  });
+
+  test("TC 10c — Checkout thiếu Zip", async ({ page }) => {
+    const checkoutStepOnePage = new CheckoutStepOnePage(page);
+
+    await test.step("1) Vào checkout step one", async () => {
+      logStep("TC 10c", 1, "Login + checkout");
+      await loginStandard(page);
+      await goToCheckoutStepOneFromInventory(page);
+    });
+
+    await test.step("2) Nhập First + Last, thiếu Zip", async () => {
+      logStep("TC 10c", 2, "Nhập First/Last, thiếu Zip");
+      await checkoutStepOnePage.firstNameField().fill("Jane");
+      await checkoutStepOnePage.lastNameField().fill("Smith");
+      await checkoutStepOnePage.continue();
+      await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
+    });
+  });
+
+  test("TC 10d — Checkout đủ thông tin", async ({ page }) => {
+    const checkoutStepOnePage = new CheckoutStepOnePage(page);
+
+    await test.step("1) Vào checkout step one", async () => {
+      logStep("TC 10d", 1, "Login + checkout");
+      await loginStandard(page);
+      await goToCheckoutStepOneFromInventory(page);
+    });
+
+    await test.step("2) Nhập đủ First, Last, Zip", async () => {
+      logStep("TC 10d", 2, "Điền đủ thông tin");
+      await checkoutStepOnePage.fillCustomerInfo("Jane", "Smith", "90210");
+      await checkoutStepOnePage.continue();
+      await expect(page).toHaveURL(/\/checkout-step-two\.html$/);
+    });
   });
 
   test.fail("TC 11 — Checkout khi giỏ hàng trống", async ({ page }) => {
-    await loginStandard(page);
-    await expect(page.getByTestId("shopping-cart-badge")).toHaveCount(0);
+    const inventoryPage = new InventoryPage(page);
+    const cartPage = new CartPage(page);
 
-    await new InventoryPage(page).openCart();
-    await expect(page).toHaveURL(/\/cart\.html$/);
+    await test.step("1) Đăng nhập standard_user", async () => {
+      logStep("TC 11", 1, "Đăng nhập");
+      await loginStandard(page);
+    });
 
-    await new CartPage(page).checkout();
+    await test.step("2) Kiểm tra giỏ hàng trống", async () => {
+      logStep("TC 11", 2, "Badge = 0");
+      await expect(inventoryPage.cartBadge()).toHaveCount(0);
+    });
 
-    await expect(page).toHaveURL(/\/cart\.html$/, { timeout: 2000 });
+    await test.step("3) Mở giỏ và click Checkout", async () => {
+      logStep("TC 11", 3, "Checkout giỏ trống");
+      await inventoryPage.openCart();
+      await expect(page).toHaveURL(/\/cart\.html$/);
+      await cartPage.checkout();
+    });
+
+    await test.step("4) Kiểm tra vẫn ở trang cart", async () => {
+      logStep("TC 11", 4, "Kỳ vọng chặn checkout — vẫn /cart.html");
+      await expect(page).toHaveURL(/\/cart\.html$/, { timeout: 2000 });
+    });
   });
 
   test("TC 12 — Sắp xếp sản phẩm theo giá", async ({ page }) => {
-    await loginStandard(page);
-    await expect(page).toHaveURL(/\/inventory\.html$/);
+    const inventoryPage = new InventoryPage(page);
 
-    const sort = page.getByTestId("product-sort-container");
-    await expect(sort).toBeVisible();
+    await test.step("1) Đăng nhập standard_user", async () => {
+      logStep("TC 12", 1, "Đăng nhập");
+      await loginStandard(page);
+      await expect(page).toHaveURL(/\/inventory\.html$/);
+    });
 
-    await sort.selectOption("lohi");
-    const pricesText = await page.locator(".inventory_item_price").allTextContents();
-    const prices = pricesText.map((t) => Number(t.replace("$", "")));
-    const sorted = [...prices].sort((a, b) => a - b);
-    expect(prices).toEqual(sorted);
+    await test.step("2) Chọn sort Price (low to high)", async () => {
+      logStep("TC 12", 2, "Sort lohi");
+      await expect(inventoryPage.sortDropdown()).toBeVisible();
+      await inventoryPage.sortByPriceLowToHigh();
+    });
+
+    await test.step("3) Đọc danh sách giá", async () => {
+      logStep("TC 12", 3, "Lấy giá sản phẩm");
+      const prices = await inventoryPage.getPrices();
+      const sorted = [...prices].sort((a, b) => a - b);
+      expect(prices).toEqual(sorted);
+    });
   });
 });
