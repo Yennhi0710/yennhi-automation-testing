@@ -6,12 +6,16 @@ export class LoginPage extends BasePage {
     return this.page.getByTestId("username");
   }
 
-  private passwordField(): Locator {
+  passwordField(): Locator {
     return this.page.getByTestId("password");
   }
 
-  private loginButton(): Locator {
+  loginButton(): Locator {
     return this.page.getByTestId("login-button");
+  }
+
+  errorButton(): Locator {
+    return this.page.locator(".error-button");
   }
 
   errorMessageContainer(): Locator {
@@ -22,9 +26,25 @@ export class LoginPage extends BasePage {
     await this.goto("/");
   }
 
-  async loginAs(username: string, password: string): Promise<void> {
+  async fillUsername(username: string): Promise<void> {
     await this.usernameField().fill(username);
+  }
+
+  async fillPassword(password: string): Promise<void> {
     await this.passwordField().fill(password);
+  }
+
+  async clickLogin(): Promise<void> {
     await this.loginButton().click();
+  }
+
+  async dismissError(): Promise<void> {
+    await this.errorButton().click();
+  }
+
+  async loginAs(username: string, password: string): Promise<void> {
+    await this.fillUsername(username);
+    await this.fillPassword(password);
+    await this.clickLogin();
   }
 }
