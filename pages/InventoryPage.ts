@@ -58,4 +58,41 @@ export class InventoryPage extends BasePage {
     await this.menuButton().click();
     await this.logoutLink().click();
   }
+
+  productsTitle(): Locator {
+    return this.page.locator(".title");
+  }
+
+  inventoryItems(): Locator {
+    return this.page.locator(".inventory_item");
+  }
+
+  sortDropdown(): Locator {
+    return this.page.getByTestId("product-sort-container");
+  }
+
+  removeFromCartButton(productSlug: string): Locator {
+    return this.removeButton(productSlug);
+  }
+
+  addToCartBtn(productSlug: string): Locator {
+    return this.addToCartButton(productSlug);
+  }
+
+  async removeFromCart(productSlug: string): Promise<void> {
+    await this.removeButton(productSlug).click();
+  }
+
+  async continueShopping(): Promise<void> {
+    await this.page.getByTestId("continue-shopping").click();
+  }
+
+  async sortByPriceLowToHigh(): Promise<void> {
+    await this.sortDropdown().selectOption("lohi");
+  }
+
+  async getPrices(): Promise<number[]> {
+    const pricesText = await this.page.locator(".inventory_item_price").allTextContents();
+    return pricesText.map((t) => Number(t.replace("$", "")));
+  }
 }
