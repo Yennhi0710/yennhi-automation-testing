@@ -25,6 +25,7 @@ export default defineConfig({
     ["./reporters/concise-reporter.ts"],
     ["html", { open: "never", outputFolder: "playwright-report" }],
     ["allure-playwright", { resultsDir: "allure-results" }],
+    ["./reporters/allure-known-bug-reporter.ts"],
   ],
   timeout: 60_000,
   expect: { timeout: 10_000 },
