@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { products, users } from "../fixtures/test-data";
+import { annotateKnownBug } from "../helpers/known-bug";
 import { logStep } from "../helpers/test-logger";
 import {
   goToCheckoutStepOneFromInventory,
@@ -475,7 +476,8 @@ test.describe("Sauce — Test Manual TC 01 → TC 12", () => {
     });
   });
 
-  test.fail("TC 11 — Checkout khi giỏ hàng trống", async ({ page }) => {
+  test.fail("TC 11 — Checkout khi giỏ hàng trống", async ({ page }, testInfo) => {
+    annotateKnownBug(testInfo, "App cho checkout khi giỏ hàng trống — không chặn như expected");
     const inventoryPage = new InventoryPage(page);
     const cartPage = new CartPage(page);
 
