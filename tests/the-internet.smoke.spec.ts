@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { annotateKnownBug } from "../helpers/known-bug";
 import { logStep } from "../helpers/test-logger";
 import {
   assertFixtureExists,
@@ -62,7 +63,8 @@ test.describe("The Internet — TC 13 → TC 20", () => {
     });
   });
 
-  test.fail("TC 14 — Upload file > 5MB", async ({ page }) => {
+  test.fail("TC 14 — Upload file > 5MB", async ({ page }, testInfo) => {
+    annotateKnownBug(testInfo, "Server không từ chối file > 5MB như kỳ vọng");
     const uploadPage = new UploadPage(page);
 
     await test.step("1) Truy cập trang File Upload", async () => {
@@ -84,7 +86,8 @@ test.describe("The Internet — TC 13 → TC 20", () => {
     });
   });
 
-  test.fail("TC 15 — Upload file sai định dạng (.exe)", async ({ page }) => {
+  test.fail("TC 15 — Upload file sai định dạng (.exe)", async ({ page }, testInfo) => {
+    annotateKnownBug(testInfo, "Server chấp nhận file .exe — không validate định dạng");
     const uploadPage = new UploadPage(page);
 
     await test.step("1) Truy cập trang File Upload", async () => {
