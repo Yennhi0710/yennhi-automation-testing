@@ -56,7 +56,7 @@ npm run report:allure
 
 ---
 
-## CI/CD & GitHub Pages 
+## CI/CD & GitHub Pages
 
 Pipeline: `.github/workflows/playwright.yml`
 
@@ -77,8 +77,6 @@ Pipeline: `.github/workflows/playwright.yml`
 **URL báo cáo (sau khi deploy thành công):**
 
 `https://yennhi0710.github.io/yennhi-automation-testing/`
-
-TC 11, TC 14, TC 15 dùng `test.fail()` — ghi nhận bug, pipeline vẫn xanh.
 
 ---
 
