@@ -9,7 +9,6 @@ const KNOWN_BUG_TAG = "Known Bug";
 interface KnownBugRun {
   title: string;
   description: string;
-  startTime: number;
 }
 
 interface AllureResultFile {
@@ -21,33 +20,24 @@ interface AllureResultFile {
   labels?: Array<{ name: string; value: string }>;
 }
 
-/**
- * Playwright test.fail() + allure-playwright maps expected failures to status "passed".
- * Reporter này patch Allure JSON → status "broken" + label known_bug để phân biệt trên report.
- * CI vẫn xanh vì Playwright exit code không đổi.
- */
 class AllureKnownBugReporter implements Reporter {
   private readonly knownBugs: KnownBugRun[] = [];
 
   onTestEnd(test: TestCase, result: TestResult): void {
-    if (test.expectedStatus !== "failed") {
+    if (test.expectedStatus !== "failed" || result.status !== "failed") {
       return;
     }
 
     const bugAnnotation = [...test.annotations, ...result.annotations].find(
       (a) => a.type === "known_bug",
     );
-    const description =
-      bugAnnotation?.description ??
-      "Bug đã ghi nhận — test fail đúng kỳ vọng (test.fail)";
 
-    if (result.status === "failed") {
-      this.knownBugs.push({
-        title: test.title,
-        description,
-        startTime: result.startTime.getTime(),
-      });
-    }
+    this.knownBugs.push({
+      title: test.title,
+      description:
+        bugAnnotation?.description ??
+        "Bug đã ghi nhận — test fail đúng kỳ vọng (test.fail)",
+    });
   }
 
   async onEnd(_result: FullResult): Promise<void> {
@@ -55,39 +45,53 @@ class AllureKnownBugReporter implements Reporter {
       return;
     }
 
-    // Đợi allure-playwright ghi xong file (onEnd chạy sau reporter trước trong config).
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      if (this.patchAllureResults()) {
+        break;
+      }
+    }
+  }
 
-    const files = fs.readdirSync(ALLURE_RESULTS_DIR).filter((f) => f.endsWith("-result.json"));
+  private patchAllureResults(): boolean {
+    const files = fs
+      .readdirSync(ALLURE_RESULTS_DIR)
+      .filter((f) => f.endsWith("-result.json"));
 
-    for (const file of files) {
-      const filePath = path.join(ALLURE_RESULTS_DIR, file);
-      const data = JSON.parse(fs.readFileSync(filePath, "utf-8")) as AllureResultFile;
-      const bugRun = this.knownBugs.find(
-        (b) =>
-          b.title === data.name &&
-          data.start !== undefined &&
-          Math.abs(data.start - b.startTime) < 2000,
-      );
+    let patched = 0;
 
-      if (!bugRun) {
+    for (const bugRun of this.knownBugs) {
+      const candidates: Array<{ filePath: string; data: AllureResultFile }> = [];
+
+      for (const file of files) {
+        const filePath = path.join(ALLURE_RESULTS_DIR, file);
+        const data = JSON.parse(fs.readFileSync(filePath, "utf-8")) as AllureResultFile;
+
+        if (data.name !== bugRun.title) {
+          continue;
+        }
+        if (data.status !== "passed" && data.status !== "failed") {
+          continue;
+        }
+        if (data.labels?.some((l) => l.name === KNOWN_BUG_LABEL)) {
+          continue;
+        }
+
+        candidates.push({ filePath, data });
+      }
+
+      if (candidates.length === 0) {
         continue;
       }
 
-      // Chỉ patch lần chạy mới nhất: allure đánh passed khi fail đúng kỳ vọng.
-      if (data.status !== "passed" && data.status !== "failed") {
-        continue;
-      }
-
+      candidates.sort((a, b) => (b.data.start ?? 0) - (a.data.start ?? 0));
+      const { filePath, data } = candidates[0];
       const errorDetail = data.statusDetails?.message ?? "";
-      data.status = "broken";
+
+      data.status = "failed";
       data.labels = data.labels ?? [];
-      if (!data.labels.some((l) => l.name === KNOWN_BUG_LABEL)) {
-        data.labels.push({ name: KNOWN_BUG_LABEL, value: "true" });
-      }
-      if (!data.labels.some((l) => l.name === "tag" && l.value === KNOWN_BUG_TAG)) {
-        data.labels.push({ name: "tag", value: KNOWN_BUG_TAG });
-      }
+      data.labels.push({ name: KNOWN_BUG_LABEL, value: "true" });
+      data.labels.push({ name: "tag", value: KNOWN_BUG_TAG });
 
       data.statusDetails = {
         ...data.statusDetails,
@@ -95,7 +99,10 @@ class AllureKnownBugReporter implements Reporter {
       };
 
       fs.writeFileSync(filePath, JSON.stringify(data), "utf-8");
+      patched++;
     }
+
+    return patched === this.knownBugs.length;
   }
 }
 
