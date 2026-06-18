@@ -43,6 +43,7 @@ npm test
 | `npm test`              | Chạy toàn bộ test                                      |
 | `npm run test:sauce`    | Chỉ project Sauce Demo                                 |
 | `npm run test:internet` | Chỉ project The Internet                               |
+| `npm run docker`        | Chạy toàn bộ test trong Docker                         |
 | `npm run test:report`   | Mở báo cáo HTML Playwright (`playwright-report/`)      |
 | `npm run report:allure` | Sinh + mở báo cáo Allure trên browser (sau `npm test`) |
 
@@ -53,6 +54,14 @@ npm test
 npm test
 npm run report:allure
 ```
+
+**Docker:** cần [Docker Desktop](https://www.docker.com/products/docker-desktop/). Chạy test:
+
+```bash
+npm run docker
+```
+
+Sau đó xem báo cáo: `npm run test:report` hoặc `npm run report:allure` (Allure cần Java 17+).
 
 ---
 

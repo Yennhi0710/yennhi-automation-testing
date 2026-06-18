@@ -7,7 +7,8 @@
     "test:sauce": "playwright test --project=chromium-saucedemo",
     "test:internet": "playwright test --project=chromium-the-internet",
     "test:report": "playwright show-report playwright-report",
-    "report:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report"
+    "report:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report",
+    "docker": "docker compose up --build --abort-on-container-exit --exit-code-from test"
   },
   "repository": {
     "type": "git",

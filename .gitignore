@@ -11,10 +11,9 @@ node_modules/
 /allure-results/
 /allure-report/
 
-# Env (secrets) — keep .env.example in repo if you add one later
+# Env (secrets)
 .env
 .env.*
-!.env.example
 
 # OS / editor
 .DS_Store
