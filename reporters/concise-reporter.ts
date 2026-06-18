@@ -22,17 +22,11 @@ const bold = (text: string): string => paint("1", text);
 class ConciseReporter implements Reporter {
   private passed = 0;
   private failed: string[] = [];
-  private knownBugs: string[] = [];
   private skipped = 0;
 
   onTestEnd(test: TestCase, result: TestResult): void {
     const title = test.title;
-    const isExpectedFail = test.expectedStatus === "failed" && result.status === "failed";
-
-    if (isExpectedFail) {
-      this.knownBugs.push(title);
-      process.stdout.write(`  ${yellow("⚠")}  ${dim(`${title} (known bug)`)}\n`);
-    } else if (result.status === "passed") {
+    if (result.status === "passed") {
       this.passed++;
       process.stdout.write(`  ${green("✓")}  ${title}\n`);
     } else if (result.status === "skipped") {
@@ -47,9 +41,6 @@ class ConciseReporter implements Reporter {
   onEnd(_result: FullResult): void {
     process.stdout.write("\n");
     const parts = [green(`${this.passed} passed`)];
-    if (this.knownBugs.length > 0) {
-      parts.push(yellow(`${this.knownBugs.length} known bug`));
-    }
     if (this.failed.length > 0) parts.push(red(`${this.failed.length} failed`));
     if (this.skipped > 0) parts.push(yellow(`${this.skipped} skipped`));
     process.stdout.write(`${bold("Total:")} ${parts.join(", ")}\n`);
