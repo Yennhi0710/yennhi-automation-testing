@@ -85,7 +85,7 @@ Pipeline: `.github/workflows/playwright.yml`
 
 **URL báo cáo (sau khi deploy thành công):**
 
-`https://yennhi0710.github.io/yennhi-automation-testing/`
+`https://yennhi0710.github.io/yennhi-automation-testing/`.
 
 ---
 
