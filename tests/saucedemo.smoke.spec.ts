@@ -165,46 +165,37 @@ test.describe("Sauce — Test Manual TC 01 → TC 12", () => {
     });
   });
 
-  test("TC 04a — Đăng nhập để trống Username", async ({ page }) => {
+  test("TC 04 — Đăng nhập để trống Username/Password", async ({ page }) => {
     const loginPage = new LoginPage(page);
 
     await test.step("1) Truy cập https://www.saucedemo.com/", async () => {
-      logStep("TC 04a", 1, "Truy cập trang đăng nhập");
+      logStep("TC 04", 1, "Truy cập trang đăng nhập");
       await loginPage.open();
     });
 
     await test.step('2) Click nút "Login" khi để trống Username', async () => {
-      logStep("TC 04a", 2, "Click Login không nhập gì");
+      logStep("TC 04", 2, "Click Login không nhập gì");
       await loginPage.clickLogin();
     });
 
     await test.step("3) Kiểm tra thông báo Username is required", async () => {
-      logStep("TC 04a", 3, "Báo lỗi Username is required");
+      logStep("TC 04", 3, "Báo lỗi Username is required");
       await expect(loginPage.errorMessageContainer()).toBeVisible();
       await expect(loginPage.errorMessageContainer()).toContainText("Username is required");
     });
-  });
 
-  test("TC 04b — Đăng nhập để trống Password", async ({ page }) => {
-    const loginPage = new LoginPage(page);
-
-    await test.step("1) Truy cập https://www.saucedemo.com/", async () => {
-      logStep("TC 04b", 1, "Truy cập trang đăng nhập");
-      await loginPage.open();
-    });
-
-    await test.step("2) Nhập Username: standard_user", async () => {
-      logStep("TC 04b", 2, "Nhập username");
+    await test.step("4) Nhập Username: standard_user", async () => {
+      logStep("TC 04", 4, "Nhập username");
       await loginPage.fillUsername(users.standard.username);
     });
 
-    await test.step('3) Click nút "Login" khi để trống Password', async () => {
-      logStep("TC 04b", 3, "Click Login thiếu password");
+    await test.step('5) Click nút "Login" khi để trống Password', async () => {
+      logStep("TC 04", 5, "Click Login thiếu password");
       await loginPage.clickLogin();
     });
 
-    await test.step("4) Kiểm tra thông báo Password is required", async () => {
-      logStep("TC 04b", 4, "Báo lỗi Password is required");
+    await test.step("6) Kiểm tra thông báo Password is required", async () => {
+      logStep("TC 04", 6, "Báo lỗi Password is required");
       await expect(loginPage.errorMessageContainer()).toContainText("Password is required");
     });
   });
@@ -238,50 +229,38 @@ test.describe("Sauce — Test Manual TC 01 → TC 12", () => {
     });
   });
 
-  test("TC 06a — Đăng xuất", async ({ page }) => {
+  test("TC 06 — Đăng xuất và Back sau khi đăng xuất", async ({ page }) => {
     const loginPage = new LoginPage(page);
     const inventoryPage = new InventoryPage(page);
 
     await test.step("1) Đăng nhập standard_user", async () => {
-      logStep("TC 06a", 1, "Đăng nhập");
+      logStep("TC 06", 1, "Đăng nhập");
       await loginUser(page, users.standard.username, users.standard.password);
     });
 
     await test.step("2) Kiểm tra đang ở /inventory.html", async () => {
-      logStep("TC 06a", 2, "Xác nhận trang Products");
+      logStep("TC 06", 2, "Xác nhận trang Products");
       await expect(page).toHaveURL(/\/inventory\.html$/);
     });
 
     await test.step('3) Mở menu và click "Logout"', async () => {
-      logStep("TC 06a", 3, "Đăng xuất");
+      logStep("TC 06", 3, "Đăng xuất");
       await inventoryPage.logout();
     });
 
     await test.step("4) Kiểm tra quay về trang login", async () => {
-      logStep("TC 06a", 4, "URL về / và form login hiển thị");
+      logStep("TC 06", 4, "URL về / và form login hiển thị");
       await expect(page).toHaveURL(/\/$/);
       await expect(loginPage.usernameField()).toBeVisible();
     });
-  });
 
-  test("TC 06b — Back sau khi đăng xuất", async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    const inventoryPage = new InventoryPage(page);
-
-    await test.step("1) Đăng nhập và đăng xuất", async () => {
-      logStep("TC 06b", 1, "Login rồi logout");
-      await loginUser(page, users.standard.username, users.standard.password);
-      await inventoryPage.logout();
-      await expect(page).toHaveURL(/\/$/);
-    });
-
-    await test.step("2) Nhấn Back trên trình duyệt", async () => {
-      logStep("TC 06b", 2, "Nhấn Back");
+    await test.step("5) Nhấn Back trên trình duyệt", async () => {
+      logStep("TC 06", 5, "Nhấn Back");
       await page.goBack();
     });
 
-    await test.step("3) Kiểm tra vẫn ở trang login", async () => {
-      logStep("TC 06b", 3, "Không quay lại inventory");
+    await test.step("6) Kiểm tra vẫn ở trang login", async () => {
+      logStep("TC 06", 6, "Không quay lại inventory");
       await expect(page).toHaveURL(/\/$/);
       await expect(loginPage.usernameField()).toBeVisible();
     });
@@ -408,69 +387,38 @@ test.describe("Sauce — Test Manual TC 01 → TC 12", () => {
     });
   });
 
-  test("TC 10a — Checkout thiếu tất cả thông tin", async ({ page }) => {
+  test("TC 10 — Validation form checkout", async ({ page }) => {
     const checkoutStepOnePage = new CheckoutStepOnePage(page);
 
     await test.step("1) Vào checkout step one", async () => {
-      logStep("TC 10a", 1, "Login + checkout");
+      logStep("TC 10", 1, "Login + checkout");
       await loginStandard(page);
       await goToCheckoutStepOneFromInventory(page);
     });
 
     await test.step('2) Click "Continue" không nhập gì', async () => {
-      logStep("TC 10a", 2, "Continue trống form");
+      logStep("TC 10", 2, "Continue trống form");
       await checkoutStepOnePage.continue();
       await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
     });
-  });
 
-  test("TC 10b — Checkout thiếu Last Name", async ({ page }) => {
-    const checkoutStepOnePage = new CheckoutStepOnePage(page);
-
-    await test.step("1) Vào checkout step one", async () => {
-      logStep("TC 10b", 1, "Login + checkout");
-      await loginStandard(page);
-      await goToCheckoutStepOneFromInventory(page);
-    });
-
-    await test.step("2) Chỉ nhập First Name", async () => {
-      logStep("TC 10b", 2, "Nhập First Name, thiếu Last/Zip");
+    await test.step("3) Chỉ nhập First Name", async () => {
+      logStep("TC 10", 3, "Nhập First Name, thiếu Last/Zip");
       await checkoutStepOnePage.firstNameField().fill("Jane");
       await checkoutStepOnePage.continue();
       await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
     });
-  });
 
-  test("TC 10c — Checkout thiếu Zip", async ({ page }) => {
-    const checkoutStepOnePage = new CheckoutStepOnePage(page);
-
-    await test.step("1) Vào checkout step one", async () => {
-      logStep("TC 10c", 1, "Login + checkout");
-      await loginStandard(page);
-      await goToCheckoutStepOneFromInventory(page);
-    });
-
-    await test.step("2) Nhập First + Last, thiếu Zip", async () => {
-      logStep("TC 10c", 2, "Nhập First/Last, thiếu Zip");
-      await checkoutStepOnePage.firstNameField().fill("Jane");
+    await test.step("4) Nhập First + Last, thiếu Zip", async () => {
+      logStep("TC 10", 4, "Nhập First/Last, thiếu Zip");
       await checkoutStepOnePage.lastNameField().fill("Smith");
       await checkoutStepOnePage.continue();
       await expect(checkoutStepOnePage.errorMessage()).toBeVisible();
     });
-  });
 
-  test("TC 10d — Checkout đủ thông tin", async ({ page }) => {
-    const checkoutStepOnePage = new CheckoutStepOnePage(page);
-
-    await test.step("1) Vào checkout step one", async () => {
-      logStep("TC 10d", 1, "Login + checkout");
-      await loginStandard(page);
-      await goToCheckoutStepOneFromInventory(page);
-    });
-
-    await test.step("2) Nhập đủ First, Last, Zip", async () => {
-      logStep("TC 10d", 2, "Điền đủ thông tin");
-      await checkoutStepOnePage.fillCustomerInfo("Jane", "Smith", "90210");
+    await test.step("5) Nhập đủ First, Last, Zip", async () => {
+      logStep("TC 10", 5, "Điền đủ thông tin");
+      await checkoutStepOnePage.postalCodeField().fill("90210");
       await checkoutStepOnePage.continue();
       await expect(page).toHaveURL(/\/checkout-step-two\.html$/);
     });
