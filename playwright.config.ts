@@ -17,6 +17,7 @@ const viewport = { width: 1400, height: 700 };
 
 export default defineConfig({
   testDir: "./tests",
+  globalSetup: require.resolve("./global-setup"),
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
