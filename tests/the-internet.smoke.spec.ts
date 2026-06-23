@@ -13,52 +13,24 @@ import { JavaScriptAlertsPage } from "../pages/the-internet/JavaScriptAlertsPage
 import { UploadPage } from "../pages/the-internet/UploadPage";
 
 test.describe("The Internet — TC 13 → TC 20", () => {
-  test("TC 13a — Upload file PNG thành công", async ({ page }) => {
+  test("TC 13 — Upload file thành công", async ({ page }) => {
     const uploadPage = new UploadPage(page);
 
-    await test.step("1) Truy cập trang File Upload", async () => {
-      logStep("TC 13a", 1, "Mở /upload");
+    await test.step("1) Upload file test_image.png", async () => {
+      logStep("TC 13", 1, "Mở /upload và upload PNG");
       await uploadPage.open();
-    });
-
-    await test.step("2) Chọn file test_image.png", async () => {
-      logStep("TC 13a", 2, "Chọn file PNG");
       const imagePath = assertFixtureExists("test_image.png");
       await uploadPage.uploadFile(imagePath);
-    });
-
-    await test.step('3) Click nút "Upload"', async () => {
-      logStep("TC 13a", 3, "Submit upload");
       await uploadPage.submit();
-    });
-
-    await test.step("4) Kiểm tra upload thành công", async () => {
-      logStep("TC 13a", 4, "File Uploaded! test_image.png");
       await uploadPage.expectUploadSuccess("test_image.png");
     });
-  });
 
-  test("TC 13b — Upload file TXT thành công", async ({ page }) => {
-    const uploadPage = new UploadPage(page);
-
-    await test.step("1) Truy cập trang File Upload", async () => {
-      logStep("TC 13b", 1, "Mở /upload");
+    await test.step("2) Upload file file_upload.txt", async () => {
+      logStep("TC 13", 2, "Upload TXT");
       await uploadPage.open();
-    });
-
-    await test.step("2) Chọn file file_upload.txt", async () => {
-      logStep("TC 13b", 2, "Chọn file TXT");
       const textPath = assertFixtureExists("file_upload.txt");
       await uploadPage.uploadFile(textPath);
-    });
-
-    await test.step('3) Click nút "Upload"', async () => {
-      logStep("TC 13b", 3, "Submit upload");
       await uploadPage.submit();
-    });
-
-    await test.step("4) Kiểm tra upload thành công", async () => {
-      logStep("TC 13b", 4, "File Uploaded! file_upload.txt");
       await uploadPage.expectUploadSuccess("file_upload.txt");
     });
   });
@@ -113,40 +85,20 @@ test.describe("The Internet — TC 13 → TC 20", () => {
     });
   });
 
-  test("TC 16a — Dynamic Loading Example 1", async ({ page }) => {
+  test("TC 16 — Dynamic Loading", async ({ page }) => {
     const dynamicPage = new DynamicLoadingPage(page);
 
-    await test.step("1) Truy cập Dynamic Loading", async () => {
-      logStep("TC 16a", 1, "Mở /dynamic_loading");
+    await test.step("1) Example 1: hidden element", async () => {
+      logStep("TC 16", 1, "Dynamic loading example 1");
       await dynamicPage.open();
-    });
-
-    await test.step("2) Mở Example 1: hidden element", async () => {
-      logStep("TC 16a", 2, "Vào example 1");
       await dynamicPage.openExample1();
-    });
-
-    await test.step('3) Click "Start" và chờ loading', async () => {
-      logStep("TC 16a", 3, "Start + chờ finish");
       await dynamicPage.startAndWaitForFinish();
     });
-  });
 
-  test("TC 16b — Dynamic Loading Example 2", async ({ page }) => {
-    const dynamicPage = new DynamicLoadingPage(page);
-
-    await test.step("1) Truy cập Dynamic Loading", async () => {
-      logStep("TC 16b", 1, "Mở /dynamic_loading");
+    await test.step("2) Example 2: rendered after", async () => {
+      logStep("TC 16", 2, "Dynamic loading example 2");
       await dynamicPage.open();
-    });
-
-    await test.step("2) Mở Example 2: rendered after", async () => {
-      logStep("TC 16b", 2, "Vào example 2");
       await dynamicPage.openExample2();
-    });
-
-    await test.step('3) Click "Start" và chờ loading', async () => {
-      logStep("TC 16b", 3, "Start + chờ finish");
       await dynamicPage.startAndWaitForFinish();
     });
   });
@@ -175,82 +127,39 @@ test.describe("The Internet — TC 13 → TC 20", () => {
     });
   });
 
-  test("TC 18a — JavaScript Alert", async ({ page }) => {
+  test("TC 18 — JavaScript Alerts", async ({ page }) => {
     const alertsPage = new JavaScriptAlertsPage(page);
 
-    await test.step("1) Truy cập JavaScript Alerts", async () => {
-      logStep("TC 18a", 1, "Mở /javascript_alerts");
+    await test.step("1) Mở trang JavaScript Alerts", async () => {
+      logStep("TC 18", 1, "Mở /javascript_alerts");
       await alertsPage.open();
     });
 
-    await test.step('2) Click "Click for JS Alert"', async () => {
-      logStep("TC 18a", 2, "Trigger JS Alert");
+    await test.step("2) JS Alert", async () => {
+      logStep("TC 18", 2, "Alert + OK");
       await alertsPage.expectAlertAndAccept("I am a JS Alert");
       await alertsPage.clickJsAlert();
-    });
-
-    await test.step("3) Kiểm tra result text", async () => {
-      logStep("TC 18a", 3, "You successfully clicked an alert");
       await expect(alertsPage.resultText()).toHaveText("You successfully clicked an alert");
     });
-  });
 
-  test("TC 18b — JavaScript Confirm (OK)", async ({ page }) => {
-    const alertsPage = new JavaScriptAlertsPage(page);
-
-    await test.step("1) Truy cập JavaScript Alerts", async () => {
-      logStep("TC 18b", 1, "Mở /javascript_alerts");
-      await alertsPage.open();
-    });
-
-    await test.step('2) Click "Click for JS Confirm" và OK', async () => {
-      logStep("TC 18b", 2, "Confirm + OK");
+    await test.step("3) JS Confirm — OK", async () => {
+      logStep("TC 18", 3, "Confirm + OK");
       await alertsPage.expectConfirmAndAccept("I am a JS Confirm");
       await alertsPage.clickJsConfirm();
-    });
-
-    await test.step("3) Kiểm tra result text", async () => {
-      logStep("TC 18b", 3, "You clicked: Ok");
       await expect(alertsPage.resultText()).toHaveText("You clicked: Ok");
     });
-  });
 
-  test("TC 18c — JavaScript Confirm (Cancel)", async ({ page }) => {
-    const alertsPage = new JavaScriptAlertsPage(page);
-
-    await test.step("1) Truy cập JavaScript Alerts", async () => {
-      logStep("TC 18c", 1, "Mở /javascript_alerts");
-      await alertsPage.open();
-    });
-
-    await test.step('2) Click "Click for JS Confirm" và Cancel', async () => {
-      logStep("TC 18c", 2, "Confirm + Cancel");
+    await test.step("4) JS Confirm — Cancel", async () => {
+      logStep("TC 18", 4, "Confirm + Cancel");
       await alertsPage.expectConfirmAndDismiss("I am a JS Confirm");
       await alertsPage.clickJsConfirm();
-    });
-
-    await test.step("3) Kiểm tra result text", async () => {
-      logStep("TC 18c", 3, "You clicked: Cancel");
       await expect(alertsPage.resultText()).toHaveText("You clicked: Cancel");
     });
-  });
 
-  test("TC 18d — JavaScript Prompt", async ({ page }) => {
-    const alertsPage = new JavaScriptAlertsPage(page);
-
-    await test.step("1) Truy cập JavaScript Alerts", async () => {
-      logStep("TC 18d", 1, "Mở /javascript_alerts");
-      await alertsPage.open();
-    });
-
-    await test.step('2) Click "Click for JS Prompt" và nhập Hello QA', async () => {
-      logStep("TC 18d", 2, "Prompt + nhập Hello QA");
+    await test.step("5) JS Prompt", async () => {
+      logStep("TC 18", 5, "Prompt + nhập Hello QA");
       await alertsPage.expectPromptAndAccept("I am a JS prompt", "Hello QA");
       await alertsPage.clickJsPrompt();
-    });
-
-    await test.step("3) Kiểm tra result text", async () => {
-      logStep("TC 18d", 3, "You entered: Hello QA");
       await expect(alertsPage.resultText()).toHaveText("You entered: Hello QA");
     });
   });
