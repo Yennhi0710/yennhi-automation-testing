@@ -14,7 +14,7 @@ Nghiên cứu và triển khai giải pháp kiểm thử tự động tích hợ
 
 ---
 
-## Mô tả chức năng hệ thống
+## Mô tả chức năng hệ thống.
 
 
 | Hạng mục              | Mô tả                                                                                                                                                                                                                                                                                                                        |
