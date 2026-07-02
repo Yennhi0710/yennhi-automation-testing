@@ -9,12 +9,12 @@ Nghiên cứu và triển khai giải pháp kiểm thử tự động tích hợ
 
 | Thành viên           |
 | -------------------- |
-| **Đinh Kim Yến Nhi** |
+| **Đinh Kim Yến Nhi** |. 
 
 
 ---
 
-## Mô tả chức năng hệ thống.
+## Mô tả chức năng hệ thống
 
 
 | Hạng mục              | Mô tả                                                                                                                                                                                                                                                                                                                        |
@@ -27,7 +27,7 @@ Nghiên cứu và triển khai giải pháp kiểm thử tự động tích hợ
 
 ---
 
-## Hướng dẫn chạy project
+## Hướng dẫn chạy project. 
 
 **Yêu cầu:** đã cài [Node.js](https://nodejs.org/).
 
