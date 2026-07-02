@@ -9,7 +9,7 @@ Nghiên cứu và triển khai giải pháp kiểm thử tự động tích hợ
 
 | Thành viên           |
 | -------------------- |
-| **Đinh Kim Yến Nhi** |
+| **Đinh Kim Yến Nhi** |. 
 
 
 ---
