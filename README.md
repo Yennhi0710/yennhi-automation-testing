@@ -1,10 +1,10 @@
-## Tên đề tài
+## Tên đề tài: 
 
 Nghiên cứu và triển khai giải pháp kiểm thử tự động tích hợp quy trình CI/CD cho ứng dụng Web sử dụng Playwright và GitHub Actions.
 
 ---
 
-## Thành viên nhóm
+## Thành viên nhóm.
 
 
 | Thành viên           |
